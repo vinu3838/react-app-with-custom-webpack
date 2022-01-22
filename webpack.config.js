@@ -1,15 +1,16 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const common = require('./webpack.config.common');
+const { merge } = require('webpack-merge')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = {
-    mode: 'development',
-    entry: './src/index.js',
-    cache: false,
+module.exports = merge(common, {
+    mode: 'production',
     output: {
-        filename: '[name].bundle.js',
+        filename: '[name].[contenthash].bundle.js',
         path: path.resolve(__dirname, 'dist'),
     },
+    cache: true,
     optimization: {
         splitChunks: {
             chunks: 'all',
@@ -18,39 +19,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(js|jsx)/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ['@babel/preset-env', '@babel/preset-react']
-                    }
-                }
-            },
-            {
                 test: /\.scss$/i,
-                use: ["style-loader", "css-loader", "sass-loader"],
-            },
-            {
-                test: /\.html$/,
-                use: ["html-loader"]
-            },
-            {
-                test: /\.(svg|png|jpg|gif|ico)$/,
-                use: {
-                    loader: "file-loader",
-                    options: {
-                        name: "[name].[hash].[ext]",
-                        outputPath: "images"
-                    }
-                }
+                use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
             }
         ]
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            template: path.join(__dirname, "public", "index.html"),
-        }),
-        new CleanWebpackPlugin()
+        new MiniCssExtractPlugin({filename:"[name].[contenthash].css"}),
+        new CleanWebpackPlugin(),
     ],
-};
+});
